@@ -32,7 +32,7 @@ std::string traducirTexto(const std::string& texto, const std::string& origen, c
 }
 
 int main() {
-    std::string texto = "Hola, mundo";
+    std::string texto = "Hola mundo";
     std::string traduccion = traducirTexto(texto, "es", "en");
     std::cout << "Traducción: " << traduccion << std::endl;
     return 0;
