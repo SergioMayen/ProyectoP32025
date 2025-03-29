@@ -1,39 +1,59 @@
 #include <iostream>
-#include <cpr/cpr.h>
-#include <nlohmann/json.hpp>  // Para manejar JSON
+#include <curl/curl.h>
+#include <string>
+#include <nlohmann/json.hpp>
 
-const std::string API_KEY = "TU_CLAVE_DE_API"; // Sustituye con tu clave real
+using namespace std;
+using json = nlohmann::json;
 
-std::string traducirTexto(const std::string& texto, const std::string& origen, const std::string& destino) {
-    std::string url = "https://translation.googleapis.com/language/translate/v2?key=" + API_KEY;
+// const string API_KEY = "AIzaSyC8ishIK-BIvWWHmgf5Gkt3rBKO39YEUYg";]
+const string API_KEY = "key";
 
-    // Cuerpo de la solicitud en formato JSON
-    nlohmann::json requestBody = {
-        {"q", texto},
-        {"source", origen},
-        {"target", destino},
-        {"format", "text"}
-    };
+const string TARGET_LANG = "es";
+const string TEXT_TO_TRANSLATE = "Hello";
 
-    // Enviar la solicitud POST
-    cpr::Response response = cpr::Post(
-        cpr::Url{url},
-        cpr::Header{{"Content-Type", "application/json"}},
-        cpr::Body{requestBody.dump()}
-    );
-
-    // Manejar la respuesta
-    if (response.status_code == 200) {
-        auto jsonResponse = nlohmann::json::parse(response.text);
-        return jsonResponse["data"]["translations"][0]["translatedText"];
-    } else {
-        return "Error en la traducción: " + response.text;
-    }
+size_t WriteCallback(void* contents, size_t size, size_t nmemb, string* output) {
+    size_t totalSize = size * nmemb;
+    output->append((char*)contents, totalSize);
+    return totalSize;
 }
 
+string extractTranslation(const string& jsonResponse) {
+    json responseJson = json::parse(jsonResponse);
+    return responseJson["data"]["translations"][0]["translatedText"];
+}
+
+string translateText(const string& text) {
+    CURL* curl;
+    CURLcode res;
+    string response;
+
+    string url = "https://translation.googleapis.com/language/translate/v2?key=" + API_KEY;
+    string postData = "q=" + text + "&target=" + TARGET_LANG;
+
+    curl = curl_easy_init();
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_POST, 1);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postData.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            cerr << "cURL error: " << curl_easy_strerror(res) << endl;
+        }
+
+        curl_easy_cleanup(curl);
+    }
+    return extractTranslation(response);;
+}
+
+
+
 int main() {
-    std::string texto = "Hola mundo";
-    std::string traduccion = traducirTexto(texto, "es", "en");
-    std::cout << "Traducción: " << traduccion << std::endl;
-    return 0;
+
+    string translatedText = translateText(TEXT_TO_TRANSLATE);
+    cout << "Respuesta de Google Translate API:\n" << translatedText << endl;
+    return 0;
 }
