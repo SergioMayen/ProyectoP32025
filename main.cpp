@@ -6,8 +6,8 @@
 using namespace std;
 using json = nlohmann::json;
 
-// const string API_KEY = "AIzaSyC8ishIK-BIvWWHmgf5Gkt3rBKO39YEUYg";]
-const string API_KEY = "key";
+const string API_KEY = "AIzaSyC8ishIK-BIvWWHmgf5Gkt3rBKO39YEUYg";
+//const string API_KEY = "key";//
 
 const string TARGET_LANG = "es";
 const string TEXT_TO_TRANSLATE = "Hello";
@@ -46,7 +46,7 @@ string translateText(const string& text) {
 
         curl_easy_cleanup(curl);
     }
-    return extractTranslation(response);;
+    return extractTranslation(response);
 }
 
 
@@ -55,5 +55,5 @@ int main() {
 
     string translatedText = translateText(TEXT_TO_TRANSLATE);
     cout << "Respuesta de Google Translate API:\n" << translatedText << endl;
-    return 0;
-}
+    return 0;
+    }
